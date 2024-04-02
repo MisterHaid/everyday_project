@@ -7,8 +7,10 @@ import { registerValidation } from './validations/auth.js';
 
 import UserModel from './models/User.js';
 
+
+
 mongoose
-    .connect("mongodb+srv://admin:1234@cluster0.yyi8opr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+    .connect("mongodb+srv://admin:1234@cluster0.yyi8opr.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0")
     .then(() => console.log("DB ok")) 
     .catch((err)=> console.log("DB error",err));
 
@@ -19,7 +21,8 @@ app.use(express.json());
 
 
 app.post('/auth/register',registerValidation, async (req,res) => {
-  const errors=validationResult(req);
+ try{
+  const errors = validationResult(req);
   if (!errors.isEmpty())
   {
     return res.status(400).json(errors.array());
@@ -40,8 +43,28 @@ app.post('/auth/register',registerValidation, async (req,res) => {
 
 const user= await doc.save();
 
+const token =jwt.sign(
+  {
+  _id: user._id,
+  },
+  'secret123',
+  {
+    expiresIn: '30d',
+  }
 
-  res.json({user  });
+);
+  res.json({ 
+    ...user,
+    token
+   });
+ }
+ catch(err){
+  console.log(err);
+  res.status(500).json(
+    {
+      message: 'Не удалось зарегистрироваться',
+    });
+ }
 
 });
 
